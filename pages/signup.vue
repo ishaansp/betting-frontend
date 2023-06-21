@@ -100,7 +100,7 @@ export default {
   data() {
     return {
       email: "",
-      ConfirmPassword: "",
+      confirmPassword: "",
       password: "",
       image1:"../assets/images/cover.jpg",
       

@@ -55,7 +55,7 @@
                 Sign In
               </button>
             </div>
-            <div class="form-group d-md-flex">
+            <!-- <div class="form-group d-md-flex">
               <div class="w-50 text-left">
                 <label class="checkbox-wrap checkbox-primary mb-0"
                   >Remember Me
@@ -66,7 +66,7 @@
               <div class="w-50 text-md-right">
                 <a href="#">Forgot Password</a>
               </div>
-            </div>
+            </div> -->
           </form>
           <p class="text-center">
             Not a member? <nuxt-link data-toggle="tab" to="/signup">Sign Up</nuxt-link>
@@ -86,17 +86,33 @@ export default {
         password: this.password,
       };
       console.log("login", payload);
-      try {
-        var user = await this.$axios.$post(
+      // try {
+         this.$axios.$post(
           "http://localhost:3001/user/signin",
           payload
-        );
-        console.log("user", user);
-        this.$store.dispatch('login', user.token);
-        this.$router.push('/matches')
-      } catch (error) {
-        console.log("error", error);
-      }
+        ).then((data)=>{
+console.log("user", data);
+        this.$store.dispatch('login', data);
+              this.$bvToast.toast(`logged in `, {
+          title: 'Success',
+          autoHideDelay: 3000,
+          variant:'success'
+        })
+        this.$router.push('/')
+        }).catch(error=>{
+          if(error.response){
+ this.$bvToast.toast(`${error.response.data.message}`, {
+          title: 'Error',
+          autoHideDelay: 3000,
+          variant:'danger'
+        })
+          }
+           
+        });
+        
+      // } catch (error) {
+      //   console.log("error", error);
+      // }
     },
   },
   data() {

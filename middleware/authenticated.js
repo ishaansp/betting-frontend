@@ -1,6 +1,10 @@
+var ls = require('local-storage');
+ 
 export default function ({ store, redirect }) {
     // If the user is not authenticated
-   debugger
+    debugger
+    var a=ls.get("vuex");
+    console.log("vuex", a);
     console.log('state',store.state)
     if (!store.state.loggedin) {
       return redirect('/login')
