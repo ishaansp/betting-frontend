@@ -19,6 +19,8 @@ export default {
   layout: "custom",
   async mounted() {
     console.log("process.env", process.env.apiUrl)
+    console.log("process.env", process.env)
+
     try {
       this.items = await this.$axios.post(
         `${process.env.apiUrl}/bets/getPlacedBets`
