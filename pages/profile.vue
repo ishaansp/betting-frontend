@@ -77,6 +77,7 @@
               <b-tabs>
                 <b-tab title="Credit">
                   <b-table
+                    v-if="creditTransactionItems.length>0"
                     table-variant="success"
                     class="mt-3"
                     striped
@@ -85,10 +86,12 @@
                     responsive
                     :fields="creditTransactionFields"
                     :items="creditTransactionItems"
-                  ></b-table>
+                  />
+                  <p v-else> No records Found</p>
                 </b-tab>
                 <b-tab title="Debit">
                   <b-table
+                  v-if="debitTransactionItems>0"
                     table-variant="danger"
                     class="mt-3"
                     striped
@@ -98,6 +101,8 @@
                     :fields="debitTransactionFields"
                     :items="debitTransactionItems"
                   ></b-table>
+                  <p v-else> No records Found</p>
+
                 </b-tab>
               </b-tabs>
             </div>
@@ -112,9 +117,11 @@
             Cards
           </template>
           <div>
-          <h2>Available Cards</h2>
-          <b-button style="float:right" class="m-3" @click="addCard">Add new card</b-button>
-         </div>
+            <h2>Available Cards</h2>
+            <b-button style="float: right" class="m-3" @click="addCard"
+              >Add new card</b-button
+            >
+          </div>
           <b-table-simple responsive table-variant="primary">
             <b-thead>
               <b-tr>
@@ -124,7 +131,7 @@
                 <b-th>Action</b-th>
               </b-tr>
             </b-thead>
-            <b-tbody >
+            <b-tbody v-if="cards.lenth>0">
               <b-tr v-for="(card, index) in cards" :key="index">
                 <b-td>{{ index + 1 }}</b-td>
                 <b-td>{{ card.brand }}</b-td>
@@ -138,24 +145,21 @@
                 ></b-td>
               </b-tr>
             </b-tbody>
+            <b-tbody v-else>
+              <tr>
+                <td colspan="4"> no records found</td>
+              </tr>
+            </b-tbody>
           </b-table-simple>
-        </b-tab>
-        <b-tab title="Add New Card">
-          <p>Add New Card</p>
-          <!-- <div class="card-div" id="card-element"> -->
-            <!-- Elements will create input elements here -->
-          <!-- </div> -->
-          <!-- <div id="card-errors" role="alert"></div> -->
-          <button @click="createToken">add card</button>
         </b-tab>
       </b-tabs>
     </div>
-    <add-card-modal :show="showModal" @modalClosed="modalClosed"/>
+    <add-card-modal :show="showModal" @modalClosed="modalClosed" />
   </div>
 </template>
 <script>
 import { loadStripe } from "@stripe/stripe-js/pure";
-import addCardModal from '../components/addCardModal.vue';
+import addCardModal from "../components/addCardModal.vue";
 
 export default {
   components: { addCardModal },
@@ -163,21 +167,29 @@ export default {
   // middleware: "authenticated",
   async mounted() {
     console.log("mounted profilepage");
-     const a=JSON.parse(localStorage.getItem('vuex'));
-      console.log(a)
-    this.stripe = await loadStripe(
-      "pk_test_51NDq1PSGrthBFHWgmuEy9NW7cm3AozNBrvxIfPXjqYrxcaVJv28QsuxUsRWcj4mp6fkLRHIgnXGIwArKMIcnqujB00YK9TQz4v"
-    );
+    const a = JSON.parse(localStorage.getItem("vuex"));
+    console.log(a);
+    try {
+      this.stripe = await loadStripe(
+        "pk_test_51NDq1PSGrthBFHWgmuEy9NW7cm3AozNBrvxIfPXjqYrxcaVJv28QsuxUsRWcj4mp6fkLRHIgnXGIwArKMIcnqujB00YK9TQz4v"
+      );
 
-    this.getCreditTransaction();
-    this.getDebitTransaction();
+      this.getCreditTransaction();
+      this.getDebitTransaction();
 
-    this.retrieveCards();
+      this.retrieveCards();
+    } catch (error) {
+      this.$bvToast.toast(`${error}`, {
+        title: "Error",
+        autoHideDelay: 3000,
+        variant: "danger",
+      });
+    }
   },
   data() {
     return {
       modalValue: "",
-      showModal:false,
+      showModal: false,
       amount: "",
       loader: "",
       tabs: 0,
@@ -247,27 +259,30 @@ export default {
     },
   },
   methods: {
-    addCard(){
-       this.showModal= true;
+    addCard() {
+      this.showModal = true;
     },
     modalClosed() {
-      console.log('hide')
-      this.showModal=false
+      console.log("hide");
+      this.showModal = false;
     },
     deleteCard(card) {
       console.log("delete");
       this.$bvModal
-        .msgBoxConfirm(`Please confirm that you want to delete card ending with ${card.last4}.`, {
-          title: "Please Confirm",
-          size: "sm",
-          buttonSize: "sm",
-          okVariant: "danger",
-          okTitle: "YES",
-          cancelTitle: "NO",
-          footerClass: "p-2",
-          hideHeaderClose: false,
-          centered: true,
-        })
+        .msgBoxConfirm(
+          `Please confirm that you want to delete card ending with ${card.last4}.`,
+          {
+            title: "Please Confirm",
+            size: "sm",
+            buttonSize: "sm",
+            okVariant: "danger",
+            okTitle: "YES",
+            cancelTitle: "NO",
+            footerClass: "p-2",
+            hideHeaderClose: false,
+            centered: true,
+          }
+        )
         .then((value) => {
           console.log("value**", value);
           this.modalValue = value;
@@ -281,20 +296,36 @@ export default {
       const payload = {
         stripeId: this.stripeID,
       };
-      const credit = await this.$axios.post(
-        "http://localhost:3001/transactions/getCreditTransactions",
-        payload
-      );
-      if (credit) {
-        this.creditTransactionItems = credit.data.transactions;
+      try {
+        const credit = await this.$axios.post(
+          "http://localhost:3001/transactions/getCreditTransactions",
+          payload
+        );
+        if (credit) {
+          this.creditTransactionItems = credit.data.transactions;
+        }
+      } catch (error) {
+        this.$bvToast.toast('wallet credit transactions not fetched due to '+ error.message, {
+              title: "Error",
+              autoHideDelay: 3000,
+              variant: "danger",
+            });
       }
     },
     async getDebitTransaction() {
-      this.transactions = await this.$axios.post(
-        "http://localhost:3001/transactions/getDebitTransactions"
-      );
-      if (this.transactions) {
-        this.debitTransactionItems = this.transactions.data.transactions;
+      try {
+        this.transactions = await this.$axios.post(
+          "http://localhost:3001/transactions/getDebitTransactions"
+        );
+        if (this.transactions) {
+          this.debitTransactionItems = this.transactions.data.transactions;
+        }
+      } catch (error) {
+        this.$bvToast.toast('wallet debit transactions not fetched due to '+ error.message, {
+              title: "Error",
+              autoHideDelay: 3000,
+              variant: "danger",
+            });
       }
     },
     formatDate(value) {
@@ -337,22 +368,32 @@ export default {
           this.getCreditTransaction();
         })
         .catch((error) => {
-          console.log("error", error);
+           this.loader = false;
+          this.amount = "";
           if (error.response) {
             this.$bvToast.toast(error.response.data.message, {
-              title: "error",
+              title: "Error",
               autoHideDelay: 3000,
               variant: "danger",
             });
-            thius.loader = false;
+            this.loader = false;
             this.amount = "";
           }
-        });
+          else{
+            this.$bvToast.toast(error.message, {
+              title: "Error",
+              autoHideDelay: 3000,
+              variant: "danger",
+            });
+          }
+        });  
+     
+      
     },
     loadCard() {
       this.element = this.stripe.elements();
       this.card = this.element.create("card");
-     
+
       this.card.on("change", ({ error }) => {
         let displayError = document.getElementById("card-errors");
         if (error) {
@@ -368,11 +409,21 @@ export default {
       const payload = {
         stripeID: this.stripeID,
       };
-      this.cards = await this.$axios.post(
+      try {
+        this.cards = await this.$axios.post(
         "http://localhost:3001/payments/getSavedCards",
         payload
       );
       this.cards = this.cards.data.cards.data;
+      } catch (error) {
+         this.$bvToast.toast('saved cards not fetched due to '+ error.message, {
+              title: "Error",
+              autoHideDelay: 3000,
+              variant: "danger",
+            });
+      }
+      
+      
     },
   },
 };

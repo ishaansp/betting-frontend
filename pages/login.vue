@@ -107,6 +107,13 @@ console.log("user", data);
           variant:'danger'
         })
           }
+          else{
+          this.$bvToast.toast(`${error}`, {
+          title: 'Error',
+          autoHideDelay: 3000,
+          variant:'danger'
+        })  
+          }
            
         });
         
