@@ -50,6 +50,6 @@ export default {
   build: {
   },
   env: {
-    apiUrl: process.env.BASE_URL 
+    apiUrl: process.env.API_BASE_URL
   }
 }
