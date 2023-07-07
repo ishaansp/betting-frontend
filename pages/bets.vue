@@ -18,9 +18,10 @@
 export default {
   layout: "custom",
   async mounted() {
+    console.log("process.env", process.env.apiUrl)
     try {
       this.items = await this.$axios.post(
-        "http://localhost:3001/bets/getPlacedBets"
+        `${process.env.apiUrl}/bets/getPlacedBets`
       );
     } catch (error) {
        this.$bvToast.toast(`${error}`, {

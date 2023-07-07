@@ -91,7 +91,7 @@
                 </b-tab>
                 <b-tab title="Debit">
                   <b-table
-                  v-if="debitTransactionItems>0"
+                  v-if="debitTransactionItems.length>0"
                     table-variant="danger"
                     class="mt-3"
                     striped
@@ -100,7 +100,7 @@
                     responsive
                     :fields="debitTransactionFields"
                     :items="debitTransactionItems"
-                  ></b-table>
+                  />
                   <p v-else> No records Found</p>
 
                 </b-tab>
@@ -131,7 +131,7 @@
                 <b-th>Action</b-th>
               </b-tr>
             </b-thead>
-            <b-tbody v-if="cards.lenth>0">
+            <b-tbody v-if="cards.length>0">
               <b-tr v-for="(card, index) in cards" :key="index">
                 <b-td>{{ index + 1 }}</b-td>
                 <b-td>{{ card.brand }}</b-td>
@@ -298,7 +298,7 @@ export default {
       };
       try {
         const credit = await this.$axios.post(
-          "http://localhost:3001/transactions/getCreditTransactions",
+          `${process.env.apiUrl}/transactions/getCreditTransactions`,
           payload
         );
         if (credit) {
@@ -315,7 +315,7 @@ export default {
     async getDebitTransaction() {
       try {
         this.transactions = await this.$axios.post(
-          "http://localhost:3001/transactions/getDebitTransactions"
+          `${process.env.apiUrl}/transactions/getDebitTransactions`
         );
         if (this.transactions) {
           this.debitTransactionItems = this.transactions.data.transactions;
@@ -342,7 +342,7 @@ export default {
         };
       });
       console.log("payload", payload);
-      this.$axios.post("http://localhost:3001/payments/saveCard", payload);
+      this.$axios.post(`${process.env.apiUrl}/payments/saveCard`, payload);
     },
     async addMOney() {
       console.log("Add Money");
@@ -354,7 +354,7 @@ export default {
       };
       console.log("payload", payload);
       await this.$axios
-        .post("http://localhost:3001/payments/createCharge", payload)
+        .post(`${process.env.apiUrl}/payments/createCharge`, payload)
         .then((res) => {
           console.log("success", res);
           this.$store.dispatch("updateUser", res.data.user);
@@ -411,7 +411,7 @@ export default {
       };
       try {
         this.cards = await this.$axios.post(
-        "http://localhost:3001/payments/getSavedCards",
+        `${process.env.apiUrl}/payments/getSavedCards`,
         payload
       );
       this.cards = this.cards.data.cards.data;
